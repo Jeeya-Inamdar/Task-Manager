@@ -1,0 +1,158 @@
+{
+  "info": {
+    "name": "Task Management API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "User Routes",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"John Doe\", \"title\": \"Developer\", \"role\": \"Admin\", \"email\": \"john@example.com\", \"password\": \"password123\"}"
+            },
+            "url": { "raw": "http://localhost:8080/api/user/register" }
+          }
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"john@example.com\", \"password\": \"password123\"}"
+            },
+            "url": { "raw": "http://localhost:8080/api/user/login" }
+          }
+        },
+        {
+          "name": "Logout User",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "http://localhost:8080/api/user/logout" }
+          }
+        },
+        {
+          "name": "Get Team List",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:8080/api/user/get-team" }
+          }
+        },
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:8080/api/user/notifications" }
+          }
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "url": { "raw": "http://localhost:8080/api/user/profile" }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "url": { "raw": "http://localhost:8080/api/user/change-password" }
+          }
+        },
+        {
+          "name": "Activate/Delete User Profile",
+          "request": {
+            "method": "PUT/DELETE",
+            "url": { "raw": "http://localhost:8080/api/user/:id" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Task Routes",
+      "item": [
+        {
+          "name": "Create Task",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "http://localhost:8080/api/task/create" }
+          }
+        },
+        {
+          "name": "Duplicate Task",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "http://localhost:8080/api/task/duplicate/:id" }
+          }
+        },
+        {
+          "name": "Post Task Activity",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "http://localhost:8080/api/task/activity/:id" }
+          }
+        },
+        {
+          "name": "Get Dashboard Statistics",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:8080/api/task/dashboard" }
+          }
+        },
+        {
+          "name": "Get All Tasks",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:8080/api/task/" }
+          }
+        },
+        {
+          "name": "Get Task by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:8080/api/task/:id" }
+          }
+        },
+        {
+          "name": "Create Subtask",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "http://localhost:8080/api/task/create-subtask/:id"
+            }
+          }
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PUT",
+            "url": { "raw": "http://localhost:8080/api/task/update/:id" }
+          }
+        },
+        {
+          "name": "Trash Task",
+          "request": {
+            "method": "PUT",
+            "url": { "raw": "http://localhost:8080/api/task/:id" }
+          }
+        },
+        {
+          "name": "Delete/Restore Task",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "http://localhost:8080/api/task/delete-restore/:id?"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
