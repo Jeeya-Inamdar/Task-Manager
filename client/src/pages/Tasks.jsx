@@ -19,7 +19,7 @@ const TABS = [
 ];
 
 const TASK_TYPE = {
-  "to-do": "bg-blue-600",
+  todo: "bg-blue-600",
   "in-progress": "bg-yellow-600",
   completed: "bg-green-600",
 };
@@ -31,20 +31,16 @@ const Tasks = () => {
   const [open, setOpen] = useState(false);
 
   // Ensure stage is always valid
-  const stage = params?.stage || "to-do";
-
-  console.log("Params Stage:", params.stage);
-  console.log("Final Stage Used:", stage);
-
+  const stage = params?.stage || "";
   // Fetch tasks with RTK Query
-  const { data, isLoading } = useGetAllTasksQuery(
-    { stage, isTrashed: "", viewType: "all" },
-    { skip: !stage } // Prevents unnecessary fetching
-  );
-
-  console.log("Fetched Tasks:", data?.tasks || []);
+  const { data, isLoading } = useGetAllTasksQuery({
+    stage,
+    isTrashed: "",
+    viewType: "",
+  });
 
   const tasks = data?.tasks || [];
+  console.log(tasks);
 
   const handleStageClick = (stage) => {
     navigate(`/tasks/${stage}`);
@@ -61,7 +57,7 @@ const Tasks = () => {
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-4">
-        <Title title={`${stage} Tasks`} />
+        <Title title={stage ? `${stage} Tasks` : "Tasks"} />
 
         <Button
           onClick={() => setOpen(true)}
@@ -73,28 +69,29 @@ const Tasks = () => {
 
       <Tabs tabs={TABS} setSelected={setSelected}>
         {/* Stage filters */}
-        <div className="w-full flex justify-between gap-4 md:gap-x-12 py-4">
-          <TaskTitle
-            label="To Do"
-            className={TASK_TYPE["to-do"]}
-            onClick={() => handleStageClick("to-do")}
-          />
-          <TaskTitle
-            label="In Progress"
-            className={TASK_TYPE["in-progress"]}
-            onClick={() => handleStageClick("in-progress")}
-          />
-          <TaskTitle
-            label="Completed"
-            className={TASK_TYPE.completed}
-            onClick={() => handleStageClick("completed")}
-          />
-        </div>
-
+        {!stage && (
+          <div className="w-full flex justify-between gap-4 md:gap-x-12 py-4">
+            <TaskTitle
+              label="To Do"
+              className={TASK_TYPE.todo}
+              // onClick={() => handleStageClick("todo")}
+            />
+            <TaskTitle
+              label="In Progress"
+              className={TASK_TYPE["in-progress"]}
+              // onClick={() => handleStageClick("in-progress")}
+            />
+            <TaskTitle
+              label="Completed"
+              className={TASK_TYPE.completed}
+              //  onClick={() => handleStageClick("completed")}
+            />
+          </div>
+        )}
         {selected === 0 ? (
-          <BoardView tasks={tasks} />
+          <BoardView tasks={data?.tasks} />
         ) : (
-          <Table tasks={tasks} />
+          <Table tasks={data?.tasks} />
         )}
       </Tabs>
 

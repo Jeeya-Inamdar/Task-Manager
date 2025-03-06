@@ -155,11 +155,19 @@ export const createTask = async (req, res) => {
       by: userId,
     };
 
+    const formatDate = (date) => {
+      if (!date) return null;
+      const d = new Date(date);
+      return `${String(d.getDate()).padStart(2, "0")}-${String(
+        d.getMonth() + 1
+      ).padStart(2, "0")}-${d.getFullYear()}`;
+    };
+
     // 🟢 Create Task
     const task = await Task.create({
       title,
       notes,
-      remindOnDate: formattedRemindOnDate.toDate(),
+      remindOnDate: formatDate(remindOnDate), // Convert remindOnDate to Date object using moment
       remindOnTime,
       location,
       meetingWith,
@@ -390,8 +398,6 @@ export const dashboardStatistics = async (req, res) => {
 //   }
 // };
 
-
-
 export const getTasks = async (req, res) => {
   try {
     const { stage, isTrashed, viewType } = req.query;
@@ -449,7 +455,9 @@ export const getTasks = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching tasks:", error);
-    return res.status(500).json({ status: false, message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ status: false, message: "Internal Server Error" });
   }
 };
 
