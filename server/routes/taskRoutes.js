@@ -50,6 +50,7 @@ router.post("/activity/:id", protectRoute, postTaskActivity);
 
 router.get("/dashboard", protectRoute, dashboardStatistics);
 router.get("/", protectRoute, getTasks);
+//router.get("/", getTasks);
 router.get("/view", protectRoute, getTasksByView); // New - Get tasks by view type
 router.get("/:id", protectRoute, getTask);
 
