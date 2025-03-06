@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FaList } from "react-icons/fa";
 import { MdGridView } from "react-icons/md";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Loading from "../components/Loader";
 import Title from "../components/Title";
 import Button from "../components/Button";
@@ -9,9 +9,9 @@ import { IoMdAdd } from "react-icons/io";
 import Tabs from "../components/Tabs";
 import TaskTitle from "../components/TaskTitle";
 import BoardView from "../components/BoardView";
-import { tasks } from "../assets/data";
 import Table from "../components/task/Table";
 import AddTask from "../components/task/AddTask";
+import { useGetAllTasksQuery } from "../redux/slices/api/taskApiSlice";
 
 const TABS = [
   { title: "Board View", icon: <MdGridView /> },
@@ -19,57 +19,82 @@ const TABS = [
 ];
 
 const TASK_TYPE = {
-  todo: "bg-blue-600",
-  "in progress": "bg-yellow-600",
+  "to-do": "bg-blue-600",
+  "in-progress": "bg-yellow-600",
   completed: "bg-green-600",
 };
 
 const Tasks = () => {
   const params = useParams();
-
+  const navigate = useNavigate();
   const [selected, setSelected] = useState(0);
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  const status = params?.status || "";
+  // Ensure stage is always valid
+  const stage = params?.stage || "to-do";
 
-  return loading ? (
-    <div className="py-10">
-      <Loading />
-    </div>
-  ) : (
+  console.log("Params Stage:", params.stage);
+  console.log("Final Stage Used:", stage);
+
+  // Fetch tasks with RTK Query
+  const { data, isLoading } = useGetAllTasksQuery(
+    { stage, isTrashed: "", viewType: "all" },
+    { skip: !stage } // Prevents unnecessary fetching
+  );
+
+  console.log("Fetched Tasks:", data?.tasks || []);
+
+  const tasks = data?.tasks || [];
+
+  const handleStageClick = (stage) => {
+    navigate(`/tasks/${stage}`);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="py-10">
+        <Loading />
+      </div>
+    );
+  }
+
+  return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-4">
-        <Title title={status ? `${status} Tasks` : "Tasks"} />
+        <Title title={`${stage} Tasks`} />
 
-        {!status && (
-          <Button
-            onClick={() => setOpen(true)}
-            label="Create Task"
-            icon={<IoMdAdd className="text-lg" />}
-            className="flex flex-row-reverse gap-1 items-center bg-blue-600 text-white rounded-md py-2 2xl:py-2.5"
-          />
-        )}
+        <Button
+          onClick={() => setOpen(true)}
+          label="Create Task"
+          icon={<IoMdAdd className="text-lg" />}
+          className="flex flex-row-reverse gap-1 items-center bg-blue-600 text-white rounded-md py-2 2xl:py-2.5"
+        />
       </div>
 
       <Tabs tabs={TABS} setSelected={setSelected}>
-        {!status && (
-          <div className="w-full flex justify-between gap-4 md:gap-x-12 py-4">
-            <TaskTitle label="To Do" className={TASK_TYPE.todo} />
-            <TaskTitle
-              label="In Progress"
-              className={TASK_TYPE["in progress"]}
-            />
-            <TaskTitle label="completed" className={TASK_TYPE.completed} />
-          </div>
-        )}
+        {/* Stage filters */}
+        <div className="w-full flex justify-between gap-4 md:gap-x-12 py-4">
+          <TaskTitle
+            label="To Do"
+            className={TASK_TYPE["to-do"]}
+            onClick={() => handleStageClick("to-do")}
+          />
+          <TaskTitle
+            label="In Progress"
+            className={TASK_TYPE["in-progress"]}
+            onClick={() => handleStageClick("in-progress")}
+          />
+          <TaskTitle
+            label="Completed"
+            className={TASK_TYPE.completed}
+            onClick={() => handleStageClick("completed")}
+          />
+        </div>
 
-        {selected !== 1 ? (
+        {selected === 0 ? (
           <BoardView tasks={tasks} />
         ) : (
-          <div className="w-full">
-            <Table tasks={tasks} />
-          </div>
+          <Table tasks={tasks} />
         )}
       </Tabs>
 

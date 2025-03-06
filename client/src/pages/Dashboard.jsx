@@ -23,8 +23,10 @@ import clsx from "clsx";
 import { Chart } from "../components/Chart";
 import { BGS, PRIORITYSTYLES, TASK_TYPE, getInitials } from "../utils";
 import UserInfo from "../components/UserInfo";
+import { useGetDashboardStatsQuery } from "../redux/slices/api/taskApiSlice";
+import Loading from "../components/Loader";
 
-// Flagged Tasks Dialog Component
+//* Flagged Tasks Dialog Component
 const FlaggedTasksDialog = ({ isOpen, onClose, flaggedTasks }) => {
   if (!isOpen) return null;
 
@@ -151,6 +153,8 @@ const FlaggedTasksDialog = ({ isOpen, onClose, flaggedTasks }) => {
   );
 };
 
+
+//* TASK TABLE COMPONENT
 const TaskTable = ({ tasks }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [flaggedTasks, setFlaggedTasks] = useState([]);
@@ -455,6 +459,18 @@ const UserTable = ({ users }) => {
 const Dashboard = () => {
   // Assume we're using the updated data structure
   const totals = summary.tasks || {};
+  const {data, isLoading} = useGetDashboardStatsQuery();
+
+  console.log(data);
+
+  if(isLoading) 
+    return(
+  <div className="py-10">
+    <Loading />
+  </div>)
+
+
+
 
   const stats = [
     {
@@ -545,7 +561,7 @@ const Dashboard = () => {
             <h4 className="text-xl text-gray-600 font-semibold">
               Chart by Priority
             </h4>
-            <Chart />
+            <Chart data={data?.graphData} />
           </div>
         </div>
 
@@ -585,10 +601,10 @@ const Dashboard = () => {
       {/* Tables section */}
       <div className="w-full flex flex-col md:flex-row gap-6 py-8">
         {/* Left side - Tasks table */}
-        <TaskTable tasks={summary.last10Task} />
+        <TaskTable tasks={data?.last10Task} />
 
         {/* Right side - Users table */}
-        <UserTable users={summary.users} />
+        <UserTable users={data?.users} />
       </div>
     </div>
   );

@@ -6,6 +6,8 @@ import User from "../models/user.js";
 import s3 from "../awsConfig.js";
 import dotenv from "dotenv";
 
+import moment from "moment";
+
 dotenv.config();
 
 // export const createTask = async (req, res) => {
@@ -157,7 +159,7 @@ export const createTask = async (req, res) => {
     const task = await Task.create({
       title,
       notes,
-      remindOnDate,
+      remindOnDate: formattedRemindOnDate.toDate(),
       remindOnTime,
       location,
       meetingWith,
@@ -346,10 +348,53 @@ export const dashboardStatistics = async (req, res) => {
     return res.status(400).json({ status: false, message: error.message });
   }
 };
+// export const getTasks = async (req, res) => {
+//   try {
+//     const { stage, isTrashed, viewType } = req.query;
+
+//     const { userId } = req.user;
+
+//     let query = { isTrashed: false };
+
+//     if (isTrashed !== undefined) {
+//       query.isTrashed = isTrashed === "true";
+//     }
+
+//     // Normalize stage to lowercase if provided
+//     if (stage) {
+//       query.stage = stage.toLowerCase();
+//     }
+
+//     console.log("Query:", query); // Debugging: Log query before execution
+
+//     let queryResult = Task.find(query)
+//       .populate({
+//         path: "team",
+//         select: "name title email",
+//       })
+//       .sort({ _id: -1 });
+
+//     const tasks = await queryResult;
+
+//     console.log("Tasks Found:", tasks.length); // Debugging: Log task count
+
+//     res.status(200).json({
+//       status: true,
+//       tasks,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching tasks:", error);
+//     return res
+//       .status(500)
+//       .json({ status: false, message: "Internal Server Error" });
+//   }
+// };
+
+
+
 export const getTasks = async (req, res) => {
   try {
     const { stage, isTrashed, viewType } = req.query;
-
     const { userId } = req.user;
 
     let query = { isTrashed: false };
@@ -358,9 +403,31 @@ export const getTasks = async (req, res) => {
       query.isTrashed = isTrashed === "true";
     }
 
-    // Normalize stage to lowercase if provided
-    if (stage) {
-      query.stage = stage.toLowerCase();
+    // Get today's date in UTC format
+    const today = moment().startOf("day").toISOString();
+
+    // Apply filtering based on viewType
+    switch (viewType) {
+      case "today":
+        query.remindOnDate = today;
+        break;
+      case "scheduled":
+        query.remindOnDate = { $gt: today }; // Future dates
+        break;
+      case "flagged":
+        query.flagged = true;
+        break;
+      case "completed":
+        query.stage = "completed";
+        break;
+      case "all":
+        // No additional filtering needed
+        break;
+      default:
+        if (stage) {
+          query.stage = stage.toLowerCase();
+        }
+        break;
     }
 
     console.log("Query:", query); // Debugging: Log query before execution
@@ -382,11 +449,10 @@ export const getTasks = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching tasks:", error);
-    return res
-      .status(500)
-      .json({ status: false, message: "Internal Server Error" });
+    return res.status(500).json({ status: false, message: "Internal Server Error" });
   }
 };
+
 export const getTask = async (req, res) => {
   try {
     const { id } = req.params;
