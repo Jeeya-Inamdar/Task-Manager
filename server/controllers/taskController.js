@@ -1,5 +1,5 @@
 import Notice from "../models/notification.js";
-import upload from "../middlewares/uploadMiddleware.js";
+//import upload from "../middlewares/uploadMiddleware.js";
 import Task from "../models/task.js";
 import Attachment from "../models/attachment.js";
 import User from "../models/user.js";
@@ -8,202 +8,202 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-export const createTask = async (req, res) => {
-  try {
-    upload.array("attachments", 5)(req, res, async (err) => {
-      if (err) {
-        return res.status(500).json({ status: false, message: err.message });
-      }
-
-      const { userId } = req.user;
-      const {
-        title,
-        notes,
-        remindOnDate,
-        remindOnTime,
-        location,
-        meetingWith,
-        earlyReminder,
-        repeat,
-        flagged,
-        priority,
-        stage,
-        type,
-        date,
-        assets,
-        team,
-      } = req.body;
-
-      let text = "New task has been assigned to you";
-      if (team?.length > 1) {
-        text += ` and ${team.length - 1} ${
-          team.length === 2 ? "other" : "others"
-        }.`;
-      }
-      text += ` The task priority is set to ${priority}. The due date is ${new Date(
-        date
-      ).toDateString()}. Thank you!!!`;
-
-      const activity = {
-        type: "assigned",
-        activity: text,
-        by: userId,
-      };
-
-      const task = await Task.create({
-        title,
-        notes,
-        remindOnDate,
-        remindOnTime,
-        location,
-        meetingWith,
-        earlyReminder,
-        repeat,
-        flagged,
-        priority: priority.toLowerCase(),
-        stage: stage.toLowerCase(),
-        type,
-        date,
-        by: userId,
-        isTrashed: false,
-        activities: [activity],
-        assets: [],
-        team,
-      });
-
-      let attachmentIds = [];
-      if (assets && assets.length > 0) {
-        const attachments = await Attachment.insertMany(
-          assets.map((url) => ({
-            task: task._id,
-            url,
-            uploadedBy: userId,
-          }))
-        );
-        attachmentIds = attachments.map((att) => att._id);
-      }
-
-      task.assets = attachmentIds;
-      await task.save();
-
-      await Notice.create({
-        team,
-        text,
-        task: task._id,
-      });
-
-      res
-        .status(200)
-        .json({ status: true, task, message: "Task created successfully." });
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ status: false, message: error.message });
-  }
-};
-
 // export const createTask = async (req, res) => {
 //   try {
-//     console.log("Files received:", req.files);
-//     console.log("Body received:", req.body);
+//     upload.array("attachments", 5)(req, res, async (err) => {
+//       if (err) {
+//         return res.status(500).json({ status: false, message: err.message });
+//       }
 
-//     const { userId } = req.user;
-//     const {
-//       title,
-//       notes,
-//       remindOnDate,
-//       remindOnTime,
-//       location,
-//       meetingWith,
-//       earlyReminder,
-//       repeat,
-//       flagged,
-//       priority,
-//       stage,
-//       type,
-//       date,
-//       team,
-//     } = req.body;
+//       const { userId } = req.user;
+//       const {
+//         title,
+//         notes,
+//         remindOnDate,
+//         remindOnTime,
+//         location,
+//         meetingWith,
+//         earlyReminder,
+//         repeat,
+//         flagged,
+//         priority,
+//         stage,
+//         type,
+//         date,
+//         // assets,
+//         team,
+//       } = req.body;
 
-//     // Prepare activity message
-//     let text = "New task has been assigned to you";
-//     if (team?.length > 1) {
-//       text += ` and ${team.length - 1} ${
-//         team.length === 2 ? "other" : "others"
-//       }.`;
-//     }
-//     text += ` The task priority is set to ${priority}. The due date is ${new Date(
-//       date
-//     ).toDateString()}. Thank you!!!`;
+//       console.log(req.body);
 
-//     const activity = {
-//       type: "assigned",
-//       activity: text,
-//       by: userId,
-//     };
+//       let text = "New task has been assigned to you";
+//       if (team?.length > 1) {
+//         text += ` and ${team.length - 1} ${
+//           team.length === 2 ? "other" : "others"
+//         }.`;
+//       }
+//       text += ` The task priority is set to ${priority}. The due date is ${new Date(
+//         date
+//       ).toDateString()}. Thank you!!!`;
 
-//     // Create Task
-//     const task = await Task.create({
-//       title,
-//       notes,
-//       remindOnDate,
-//       remindOnTime,
-//       location,
-//       meetingWith,
-//       earlyReminder,
-//       repeat,
-//       flagged,
-//       priority: priority.toLowerCase(),
-//       stage: stage.toLowerCase(),
-//       type,
-//       date,
-//       by: userId,
-//       isTrashed: false,
-//       activities: [activity],
-//       assets: [],
-//       team,
-//     });
+//       const activity = {
+//         type: "assigned",
+//         activity: text,
+//         by: userId,
+//       };
 
-//     let attachmentIds = [];
-
-//     // 🔹 Upload Files to S3 and Store in DB
-//     console.log(req.files);
-//     if (req.files && req.files.length > 0) {
-//       const uploadPromises = req.files.map(async (file) => {
-//         const fileUrl = await uploadToS3(file); // Upload to S3
-//         const attachment = await Attachment.create({
-//           task: task._id,
-//           url: fileUrl,
-//           fileType: file.mimetype,
-//           uploadedBy: userId,
-//         });
-//         return attachment._id;
+//       const task = await Task.create({
+//         title,
+//         notes,
+//         remindOnDate,
+//         remindOnTime,
+//         location,
+//         meetingWith,
+//         earlyReminder,
+//         repeat,
+//         flagged,
+//         priority: priority.toLowerCase(),
+//         stage: stage.toLowerCase(),
+//         type,
+//         date,
+//         by: userId,
+//         isTrashed: false,
+//         activities: [activity],
+//         assets: [],
+//         team,
 //       });
 
-//       attachmentIds = await Promise.all(uploadPromises);
-//     }
-// aoo
-//     // 🔹 Store Attachments in Task
-//     task.assets = attachmentIds;
-//     await task.save();
+//       // let attachmentIds = [];
+//       // if (assets && assets.length > 0) {
+//       //   const attachments = await Attachment.insertMany(
+//       //     assets.map((url) => ({
+//       //       task: task._id,
+//       //       url,
+//       //       uploadedBy: userId,
+//       //     }))
+//       //   );
+//       //   attachmentIds = attachments.map((att) => att._id);
+//       // }
+//       let attachmentIds = [];
+//       if (req.files && req.files.length > 0) {
+//         const attachments = await Attachment.insertMany(
+//           req.files.map((file) => ({
+//             task: task._id,
+//             url: `/uploads/${file.filename}`, // Store file path or URL
+//             uploadedBy: userId,
+//           }))
+//         );
+//         attachmentIds = attachments.map((att) => att._id);
+//       }
 
-//     // 🔹 Create Notification
-//     await Notice.create({
-//       team,
-//       text,
-//       task: task._id,
-//     });
+//       task.assets = attachmentIds;
+//       await task.save();
 
-//     res.status(200).json({
-//       status: true,
-//       task,
-//       message: "Task created successfully.",
+//       await Notice.create({
+//         team,
+//         text,
+//         task: task._id,
+//       });
+
+//       res
+//         .status(200)
+//         .json({ status: true, task, message: "Task created successfully." });
 //     });
 //   } catch (error) {
 //     console.error(error);
 //     res.status(400).json({ status: false, message: error.message });
 //   }
 // };
+
+export const createTask = async (req, res) => {
+  try {
+    const { userId } = req.user;
+    const {
+      title,
+      notes,
+      remindOnDate,
+      remindOnTime,
+      location,
+      meetingWith,
+      earlyReminder,
+      repeat,
+      flagged,
+      priority,
+      stage,
+      type,
+      date,
+      team,
+    } = req.body;
+
+    console.log(req.body);
+
+    let text = "New task has been assigned to you";
+    if (team?.length > 1) {
+      text += ` and ${team.length - 1} ${
+        team.length === 2 ? "other" : "others"
+      }.`;
+    }
+    text += ` The task priority is set to ${priority}. The due date is ${new Date(
+      date
+    ).toDateString()}. Thank you!!!`;
+
+    const activity = {
+      type: "assigned",
+      activity: text,
+      by: userId,
+    };
+
+    // 🟢 Create Task
+    const task = await Task.create({
+      title,
+      notes,
+      remindOnDate,
+      remindOnTime,
+      location,
+      meetingWith,
+      earlyReminder,
+      repeat,
+      flagged,
+      priority: priority.toLowerCase(),
+      stage: stage.toLowerCase(),
+      type,
+      date,
+      by: userId,
+      isTrashed: false,
+      activities: [activity],
+      assets: [],
+      team,
+    });
+
+    let attachmentIds = [];
+    if (req.files && req.files.length > 0) {
+      const attachments = await Attachment.insertMany(
+        req.files.map((file) => ({
+          task: task._id,
+          url: file.location, // ✅ S3 URL
+          uploadedBy: userId,
+        }))
+      );
+      attachmentIds = attachments.map((att) => att._id);
+    }
+
+    task.assets = attachmentIds;
+    await task.save();
+
+    await Notice.create({
+      team,
+      text,
+      task: task._id,
+    });
+
+    res
+      .status(200)
+      .json({ status: true, task, message: "Task created successfully." });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ status: false, message: error.message });
+  }
+};
 
 export const duplicateTask = async (req, res) => {
   try {
@@ -346,14 +346,14 @@ export const dashboardStatistics = async (req, res) => {
     return res.status(400).json({ status: false, message: error.message });
   }
 };
-
 export const getTasks = async (req, res) => {
   try {
-    const { stage, isTrashed } = req.query;
+    const { stage, isTrashed, viewType } = req.query;
 
-    let query = {};
+    const { userId } = req.user;
 
-    // Convert isTrashed to boolean
+    let query = { isTrashed: false };
+
     if (isTrashed !== undefined) {
       query.isTrashed = isTrashed === "true";
     }
@@ -387,7 +387,6 @@ export const getTasks = async (req, res) => {
       .json({ status: false, message: "Internal Server Error" });
   }
 };
-
 export const getTask = async (req, res) => {
   try {
     const { id } = req.params;

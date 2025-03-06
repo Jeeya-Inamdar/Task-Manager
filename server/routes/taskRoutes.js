@@ -16,8 +16,14 @@ import {
   getAttachments, // New - Get all attachments of a task
 } from "../controllers/taskController.js";
 import { isAdminRoute, protectRoute } from "../middlewares/authMiddlewave.js";
-
+import s3 from "../awsConfig.js";
+import dotenv from "dotenv";
+import multer from "multer";
+import multerS3 from "multer-s3";
 import upload from "../middlewares/uploadMiddleware.js";
+dotenv.config();
+
+//import upload from "../middlewares/uploadMiddleware.js";
 const router = express.Router();
 
 // Task-related routes
@@ -28,6 +34,16 @@ router.post(
   upload.array("attachments", 1000),
   createTask
 );
+
+// router.post("/upload-multiple", upload.array("images", 5), (req, res) => {
+//   if (!req.files || req.files.length === 0) {
+//     return res.status(400).json({ error: "Please upload at least one image" });
+//   }
+
+//   // Return array of uploaded file URLs
+//   const imageUrls = req.files.map((file) => file.location);
+//   res.json({ imageUrls });
+// });
 
 router.post("/duplicate/:id", protectRoute, isAdminRoute, duplicateTask);
 router.post("/activity/:id", protectRoute, postTaskActivity);
