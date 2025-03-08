@@ -62,6 +62,7 @@ export const taskApiSlice = apiSlice.injectEndpoints({
         body: data,
         credentials: "include",
       }),
+      invalidatesTags: (result, error, {id}) => [{type: 'Task', id}]
     }),
 
     trashTask: builder.mutation({
@@ -82,6 +83,7 @@ export const taskApiSlice = apiSlice.injectEndpoints({
 });
 
 export const {
+  usePostTaskActivityMutation,
   useGetAllTasksQuery,
   useGetDashboardStatsQuery,
   useGetTaskByIdQuery,

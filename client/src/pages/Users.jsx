@@ -23,7 +23,6 @@ const Users = () => {
   const { data, isLoading, refetch } = useGetTeamListQuery();
   const [deleteUser] = useDeleteUserMutation();
   const [userAction] = useUserActionMutation();
-  // console.log(data);
 
   const userActionHandler = async () => {
     try {
