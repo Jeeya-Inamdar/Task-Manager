@@ -1,16 +1,17 @@
-import { Popover, Transition } from "@headlessui/react";
+import {Popover, PopoverButton, Transition } from "@headlessui/react";
 import React, { Fragment } from "react";
 import { getInitials } from "../utils";
 
 const UserInfo = ({ user }) => {
+ // console.log(user);
   return (
     <div className="px-4">
       <Popover className="relative">
         {/* {({ open }) => ( */}
         <>
-          <Popover.Button className="group inline-flex items-center outline-none">
-            <span>{getInitials(user?.name)}</span>
-          </Popover.Button>
+          <PopoverButton className="group inline-flex items-center outline-none">
+            <span>{getInitials(user?.name || " Unknown ")}</span>
+          </PopoverButton>
 
           <Transition
             as={Fragment}
