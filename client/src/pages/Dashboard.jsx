@@ -417,44 +417,6 @@ const UserTable = ({ users }) => {
   );
 };
 
-// const TaskTypeDistribution = ({ tasks }) => {
-//   // Count tasks by stage
-//   const stagesCount = tasks.reduce((acc, task) => {
-//     acc[task.stage] = (acc[task.stage] || 0) + 1;
-//     return acc;
-//   }, {});
-
-//   return (
-//     <div className="w-full bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-//       <h4 className="text-lg font-semibold text-gray-800 mb-5">
-//         Task Status Distribution
-//       </h4>
-//       <div className="flex justify-around">
-//         {Object.entries(stagesCount).map(([stage, count]) => (
-//           <div key={stage} className="text-center">
-//             <div
-//               className={clsx(
-//                 "w-16 h-16 rounded-full flex items-center justify-center mx-auto shadow-md",
-//                 stage === "todo"
-//                   ? "bg-gradient-to-br from-blue-500 to-blue-600"
-//                   : stage === "in progress"
-//                   ? "bg-gradient-to-br from-yellow-400 to-yellow-500"
-//                   : "bg-gradient-to-br from-green-500 to-green-600"
-//               )}
-//             >
-//               <span className="text-white text-xl font-bold">{count}</span>
-//             </div>
-//             <p className="mt-3 text-gray-700 font-medium capitalize">{stage}</p>
-//             <p className="text-xs text-gray-500">
-//               {Math.round((count / tasks.length) * 100)}% of tasks
-//             </p>
-//           </div>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// };
-
 const Dashboard = () => {
   // Assume we're using the updated data structure
 
@@ -572,13 +534,11 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 gap-4">
-            <div
-              className="border border-gray-100 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
-             
-              
-            >
-              <div className="flex items-center gap-2 mb-2"
-               onClick={() => handleTaskFlagClick(task)}>
+            <div className="border border-gray-100 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+              <div
+                className="flex items-center gap-2 mb-2"
+                onClick={() => handleTaskFlagClick(task)}
+              >
                 <BsFlagFill className="text-red-500" />
                 <p className="text-gray-700 font-medium">Flagged Tasks</p>
               </div>

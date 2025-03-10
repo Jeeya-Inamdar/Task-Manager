@@ -175,7 +175,7 @@ export const createTask = async (req, res) => {
       repeat,
       flagged,
       priority: priority.toLowerCase(),
-      stage: stage.toLowerCase(),
+      stage: stage,
       type,
       date,
       by: userId,
@@ -578,8 +578,7 @@ export const updateTask = async (req, res) => {
         ...(title && { title }),
         ...(date && { date }),
         ...(priority && { priority: priority.toLowerCase() }),
-        ...(stage && { stage: stage.toLowerCase() }),
-        ...(assets && { assets }),
+        ...(stage && { stage }), // Remove toLowerCase() to keep original casing
         ...(team && { team }),
         assets: attachmentIds,
       },

@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import ModalWrapper from "../ModalWrapper";
-import { Dialog } from "@headlessui/react";
+import { DialogTitle } from "@headlessui/react";
 import Textbox from "../Textbox";
 import Button from "../Button";
 import { useCreateSubtaskMutation } from "../../redux/slices/api/taskApiSlice";
@@ -32,12 +32,12 @@ const AddSubTask = ({ open, setOpen, id }) => {
     <>
       <ModalWrapper open={open} setOpen={setOpen}>
         <form onSubmit={handleSubmit(handleOnSubmit)} className="">
-          <Dialog.Title
+          <DialogTitle
             as="h2"
             className="text-base font-bold leading-6 text-gray-900 mb-4"
           >
             ADD SUB-TASK
-          </Dialog.Title>
+          </DialogTitle>
           <div className="mt-2 flex flex-col gap-6">
             <Textbox
               placeholder="Sub-Task title"
