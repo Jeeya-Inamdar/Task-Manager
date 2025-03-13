@@ -78,6 +78,65 @@ export const taskApiSlice = apiSlice.injectEndpoints({
         credentials: "include",
       }),
     }),
+
+    addAttachment: builder.mutation({
+      query: ({ id, attachment }) => {
+        const formatData = new FormData();
+        formatData.append("attachment", attachment);
+        return {
+          url: `${TASKS_URL}/upload-attachment/${id}`,
+          method: "POST",
+          body: formatData,
+          credentials: "include",
+        };
+      },
+    }),
+
+    getAttachments: builder.query({
+      query: (taskId) => ({
+        url: `${TASKS_URL}/attachments/${taskId}`,
+        method: "GET",
+        credentials: "include",
+      }),
+    }),
+
+    removeAttachment: builder.mutation({
+      query: (attachmentId) => ({
+        url: `${TASKS_URL}/delete-attachment/${attachmentId}`,
+        method: "Delete",
+        credentials: "include",
+      }),
+    }),
+
+    getNotesByTaskId: builder.query({
+      query: (taskId) => ({
+        url: `${TASKS_URL}/${taskId}/notes`,
+        method: "GET",
+        credentials: "include",
+      }),
+    }),
+
+    deleteNotes: builder.mutation({
+      query: (taskId) => ({
+        url: `${TASKS_URL}/${taskId}/notes`,
+        method: "DELETE",
+        credentials: "include",
+      }),
+    }),
+
+    addVoiceNotes: builder.mutation({
+      query: ({ id, file }) => {
+        const formData = new FormData();
+        formData.append("voiceNote", file);
+
+        return {
+          url: `${TASKS_URL}/${taskId}/voice-note`,
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        };
+      },
+    }),
   }),
 });
 
@@ -91,4 +150,10 @@ export const {
   useUpdateTaskMutation,
   useTrashTaskMutation,
   useDeleteOrRestoreTaskMutation,
+  useAddAttachmentMutation,
+  useGetAttachmentsQuery,
+  useRemoveAttachmentMutation,
+  useAddVoiceNotesMutation,
+  useDeleteNotesMutation,
+  useGetNotesByTaskIdQuery,
 } = taskApiSlice;

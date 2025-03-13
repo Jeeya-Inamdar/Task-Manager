@@ -3,7 +3,10 @@ import mongoose, { Schema } from "mongoose";
 const taskSchema = new Schema(
   {
     title: { type: String, required: true },
-    notes: { type: String },
+    notes: {
+      text: { type: String },
+      voiceNote: [{ type: Schema.Types.ObjectId, ref: "Attachment" }],
+    },
     remindOnDate: { type: Date },
     remindOnTime: { type: String },
     location: { type: String },

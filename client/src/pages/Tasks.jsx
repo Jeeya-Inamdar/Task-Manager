@@ -42,6 +42,7 @@ const formatTasksForDisplay = (tasks) => {
     stage: task.stage,
     isSelected: false,
     priority: task.priority,
+    createdAt: task.createdAt,
     items: [
       task.assignedTo ? `@${task.assignedTo.split("@")[0]}` : "",
       ...(task.description ? [task.description] : []),
@@ -165,19 +166,27 @@ const SimpleDraggableTaskCard = ({
       )}
 
       {/* Display Task Priority */}
-      {task.priority && (
-        <div
-          className={`mt-2 text-xs inline-block px-2 py-1 rounded ${
-            task.priority === "high"
-              ? "bg-red-100 text-red-800"
-              : task.priority === "medium"
-              ? "bg-yellow-100 text-yellow-800"
-              : "bg-green-100 text-green-800"
-          }`}
-        >
-          {task.priority}
-        </div>
-      )}
+      <div className="mt-8 flex items-center gap-2">
+        {task.priority && (
+          <div
+            className={`text-xs inline-block px-2 py-1 rounded ${
+              task.priority === "high"
+                ? "bg-red-100 text-red-800"
+                : task.priority === "medium"
+                ? "bg-yellow-100 text-yellow-800"
+                : "bg-green-100 text-green-800"
+            }`}
+          >
+            {task.priority}
+          </div>
+        )}
+
+        {task.createdAt && (
+          <div className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+            {new Date(task.createdAt).toDateString()}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -355,7 +364,7 @@ const Tasks = () => {
   };
 
   const onDragEnd = (e) => {
-    logEvent("onDragEnd", e);
+    //logEvent("onDragEnd", e);
     setIsDragging(false);
     setDraggingTask(null);
 
@@ -370,7 +379,7 @@ const Tasks = () => {
 
   const onDragOver = (e, stage) => {
     e.preventDefault();
-    logEvent("onDragOver", e, stage);
+    // logEvent("onDragOver", e, stage);
 
     if (isDragging) {
       document.querySelectorAll(".drop-zone").forEach((zone) => {
@@ -384,7 +393,7 @@ const Tasks = () => {
   };
 
   const onDragLeave = (e) => {
-    logEvent("onDragLeave", e);
+    //logEvent("onDragLeave", e);
 
     if (e.currentTarget && !e.currentTarget.contains(e.relatedTarget)) {
       e.currentTarget.classList.remove("bg-blue-100", "border-blue-500");
@@ -393,7 +402,7 @@ const Tasks = () => {
 
   const onDrop = async (e, newStage) => {
     e.preventDefault();
-    logEvent("onDrop", e, newStage);
+    //logEvent("onDrop", e, newStage);
 
     const taskId = e.dataTransfer.getData("text/plain");
     console.log("Dropped task ID:", taskId);
