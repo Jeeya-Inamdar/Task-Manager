@@ -13,6 +13,7 @@ export function dateFormatter(dateString) {
   const inputDate = new Date(dateString);
 
   if (isNaN(inputDate)) {
+    console.log(inputDate);
     return "Invalid Date";
   }
 
@@ -37,7 +38,9 @@ export function getInitials(fullName = "") {
   if (!fullName.trim()) return "?"; // Handle empty or undefined names
 
   const names = fullName.trim().split(/\s+/); // Remove extra spaces and split properly
-  const initials = names.slice(0, 2).map((name) => name[0]?.toUpperCase() || ""); // Prevent undefined error
+  const initials = names
+    .slice(0, 2)
+    .map((name) => name[0]?.toUpperCase() || ""); // Prevent undefined error
 
   return initials.join("") || "?"; // Ensure initials are always returned
 }

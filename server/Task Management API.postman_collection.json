@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "2febaeef-9032-475b-a26e-0f9cbce3b451",
+		"_postman_id": "044f83fb-5e35-4f8f-9374-c14634a195e2",
 		"name": "Task Management API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "26999280"
+		"_exporter_id": "42816240"
 	},
 	"item": [
 		{
@@ -21,7 +21,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\": \"Jane Doe\",\r\n    \"title\": \"Admin\",\r\n    \"role\": \"Admin\",\r\n    \"email\": \"jane@gmail.com\",\r\n    \"password\": \"password123\",\r\n    \"isAdmin\":\"true\"\r\n}"
+							"raw": " {\r\n    \"name\": \"Jane Doe\",\r\n    \"title\": \"Developer\",\r\n    \"role\": \"Admin\",\r\n    \"email\": \"jane@gmail.com\",\r\n    \"password\": \"12345\",\r\n    \"isAdmin\": \"true\"\r\n  }"
 						},
 						"url": {
 							"raw": "http://localhost:8080/api/user/register",
@@ -51,7 +51,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"email\": \"jane@gmail.com\",\r\n    \"password\": \"password123\"\r\n}"
+							"raw": "{\r\n  \"email\": \"emily@gmail.com\",\r\n    \"password\": \"12345\"\r\n}"
 						},
 						"url": {
 							"raw": "http://localhost:8080/api/user/login",
@@ -205,8 +205,27 @@
 					"request": {
 						"method": "POST",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "  {\r\n    \"title\": \"System Security Audit\",\r\n    \"notes\": \"Conduct a thorough audit of security vulnerabilities\",\r\n    \"remindOnDate\": \"2025-03-09\",\r\n    \"remindOnTime\": \"04:00 PM\",\r\n    \"location\": \"IT Department - Security Office\",\r\n    \"meetingWith\": \"Security Team\",\r\n    \"earlyReminder\": true,\r\n    \"flagged\": false,\r\n    \"priority\": \"HIGH\",\r\n    \"stage\": \"TODO\",\r\n    \"type\": \"Security\",\r\n    \"date\": \"2025-03-09\",\r\n    \"team\": [\"67c94351be1f1404cb65895a\", \"67c9433cbe1f1404cb658954\"]\r\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": ""
+							"raw": "http://localhost:8080/api/task/create",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"task",
+								"create"
+							]
 						}
 					},
 					"response": []
@@ -266,11 +285,23 @@
 				},
 				{
 					"name": "Get All Tasks",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "GET",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "http://localhost:8080/api/task?stage=&isTrashed=false&search=",
+							"raw": "http://localhost:8080/api/task/",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -278,20 +309,29 @@
 							"port": "8080",
 							"path": [
 								"api",
-								"task"
+								"task",
+								""
 							],
 							"query": [
 								{
 									"key": "stage",
-									"value": ""
+									"value": "todo",
+									"disabled": true
+								},
+								{
+									"key": "stage",
+									"value": "todo",
+									"disabled": true
 								},
 								{
 									"key": "isTrashed",
-									"value": "false"
+									"value": "",
+									"disabled": true
 								},
 								{
-									"key": "search",
-									"value": ""
+									"key": "viewType",
+									"value": " ",
+									"disabled": true
 								}
 							]
 						}
@@ -355,8 +395,28 @@
 					"request": {
 						"method": "PUT",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"notes\": \"exim\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": ""
+							"raw": "http://localhost:8080/api/task/update/67ca854baf4075baa8dad513",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"task",
+								"update",
+								"67ca854baf4075baa8dad513"
+							]
 						}
 					},
 					"response": []
@@ -402,12 +462,12 @@
 								{
 									"key": "attachment",
 									"type": "file",
-									"src": "postman-cloud:///1efea98f-19bc-41a0-a73c-596cba02a4e7"
+									"src": "/C:/Users/india/Pictures/images.jpg"
 								}
 							]
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/task/upload-attachment/67c3624e7c019cac33318aa9",
+							"raw": "http://localhost:8080/api/task/upload-attachment/67c966d4be1f1404cb6589b7",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -417,7 +477,7 @@
 								"api",
 								"task",
 								"upload-attachment",
-								"67c3624e7c019cac33318aa9"
+								"67c966d4be1f1404cb6589b7"
 							]
 						}
 					},
@@ -432,7 +492,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/api/task/attachments/67c3624e7c019cac33318aa9",
+							"raw": "http://localhost:8080/api/task/attachments/67cec3e5d60bdc5060da46d2",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -442,7 +502,7 @@
 								"api",
 								"task",
 								"attachments",
-								"67c3624e7c019cac33318aa9"
+								"67cec3e5d60bdc5060da46d2"
 							]
 						}
 					},
@@ -457,7 +517,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/api/task/delete-attachment/67c6822203ea42790823aa65",
+							"raw": "http://localhost:8080/api/task/delete-attachment/67c966d4be1f1404cb6589b7",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -467,7 +527,88 @@
 								"api",
 								"task",
 								"delete-attachment",
-								"67c6822203ea42790823aa65"
+								"67c966d4be1f1404cb6589b7"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Notes",
+			"item": [
+				{
+					"name": "Upload voice note",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "voiceNote",
+									"type": "file",
+									"src": "/C:/Users/india/Downloads/whatsapp-typing-and-sending-message-sound-effect-204192.mp3"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/task/67c966d4be1f1404cb6589b7/voice-note",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"task",
+								"67c966d4be1f1404cb6589b7",
+								"voice-note"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Notes",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/task/67cec3e5d60bdc5060da46d2/notes",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"task",
+								"67cec3e5d60bdc5060da46d2",
+								"notes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get notes by Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/task/67c966d4be1f1404cb6589b7/notes",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"task",
+								"67c966d4be1f1404cb6589b7",
+								"notes"
 							]
 						}
 					},

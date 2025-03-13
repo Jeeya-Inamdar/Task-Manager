@@ -1,9 +1,8 @@
 import Notice from "../models/notification.js";
 //import upload from "../middlewares/uploadMiddleware.js";
 import Task from "../models/task.js";
-import Attachment from "../models/attachment.js";
+import Attachment from "../models/Attachment.js";
 import User from "../models/user.js";
-import s3 from "../awsConfig.js";
 import dotenv from "dotenv";
 
 import moment from "moment";
@@ -137,8 +136,6 @@ export const createTask = async (req, res) => {
       team,
     } = req.body;
 
-    console.log(req.body);
-
     let text = "New task has been assigned to you";
     if (team?.length > 1) {
       text += ` and ${team.length - 1} ${
@@ -155,19 +152,13 @@ export const createTask = async (req, res) => {
       by: userId,
     };
 
-    const formatDate = (date) => {
-      if (!date) return null;
-      const d = new Date(date);
-      return `${String(d.getDate()).padStart(2, "0")}-${String(
-        d.getMonth() + 1
-      ).padStart(2, "0")}-${d.getFullYear()}`;
-    };
+    let processedNotes = typeof notes === "string" ? { text: notes } : notes;
 
     // 🟢 Create Task
     const task = await Task.create({
       title,
-      notes,
-      remindOnDate: formatDate(remindOnDate), // Convert remindOnDate to Date object using moment
+      notes: processedNotes,
+      remindOnDate, // Convert remindOnDate to Date object using moment
       remindOnTime,
       location,
       meetingWith,
@@ -175,7 +166,7 @@ export const createTask = async (req, res) => {
       repeat,
       flagged,
       priority: priority.toLowerCase(),
-      stage: stage.toLowerCase(),
+      stage: stage,
       type,
       date,
       by: userId,
@@ -195,6 +186,21 @@ export const createTask = async (req, res) => {
         }))
       );
       attachmentIds = attachments.map((att) => att._id);
+
+      if (req.body.isVoiceNote && req.files.length > 0) {
+        const voiceNoteAttachment = attachments.find((att) =>
+          att.fileType.startsWith("audio/")
+        );
+        if (voiceNoteAttachment) {
+          task.notes.voiceNote = voiceNoteAttachment._id;
+          // If it's a voice note, we might want to keep it out of the regular assets
+          attachmentIds = attachments
+            .filter(
+              (att) => att._id.toString() !== voiceNoteAttachment._id.toString()
+            )
+            .map((att) => att._id);
+        }
+      }
     }
 
     task.assets = attachmentIds;
@@ -549,15 +555,30 @@ export const updateTask = async (req, res) => {
         .json({ status: false, message: "Task ID is required" });
     }
 
-    const { title, date, team, stage, priority, assets } = req.body;
+    const { title, date, notes, team, stage, priority, assets } = req.body;
 
-    const task = await Task.findById(id);
+    const task = await Task.findById(id.trim());
     if (!task) {
       return res.status(404).json({ status: false, message: "Task not found" });
     }
 
-    let attachmentIds = [...task.assets]; // Preserve existing attachments
+    // Preserve existing attachments
+    let attachmentIds = [...task.assets];
 
+    // Handle notes updates while preserving existing voiceNote
+    let processedNotes = { ...task.notes }; // Preserve current notes
+
+    if (notes) {
+      if (typeof notes === "string") {
+        // Update only text if a string is provided
+        processedNotes.text = notes;
+      } else {
+        // Merge updates (allows updating text or voiceNote separately)
+        processedNotes = { ...processedNotes, ...notes };
+      }
+    }
+
+    // Handle asset updates
     if (assets && assets.length > 0) {
       const newAttachments = await Attachment.insertMany(
         assets.map((url) => ({
@@ -572,18 +593,19 @@ export const updateTask = async (req, res) => {
       ];
     }
 
+    // Update task
     const updatedTask = await Task.findByIdAndUpdate(
       id.trim(),
       {
         ...(title && { title }),
+        notes: processedNotes, // Always update notes (but preserve existing fields)
         ...(date && { date }),
         ...(priority && { priority: priority.toLowerCase() }),
-        ...(stage && { stage: stage.toLowerCase() }),
-        ...(assets && { assets }),
+        ...(stage && { stage }), // Keep original casing
         ...(team && { team }),
-        assets: attachmentIds,
+        assets: attachmentIds, // Update asset list
       },
-      { new: true, runValidators: true } // Return updated document & validate fields
+      { new: true, runValidators: true }
     );
 
     if (!updatedTask) {
@@ -686,121 +708,6 @@ export const getTasksByView = async (req, res) => {
       .populate("assets");
 
     res.status(200).json({ status: true, tasks });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ status: false, message: "Internal Server Error" });
-  }
-};
-
-export const uploadToS3 = async (file) => {
-  try {
-    if (!file || !file.buffer) {
-      throw new Error("No file buffer found for upload.");
-    }
-
-    const params = {
-      Bucket: process.env.AWS_S3_BUCKET_NAME,
-      Key: `uploads/${Date.now()}-${file.originalname}`,
-      Body: file.buffer,
-      ContentType: file.mimetype,
-    };
-
-    const uploadResult = await s3.upload(params).promise();
-
-    return uploadResult.Location; // Return file URL
-  } catch (error) {
-    console.error("Error uploading file to S3:", error);
-    throw new Error("File upload failed.");
-  }
-};
-
-export const addAttachment = async (req, res) => {
-  try {
-    const { taskId } = req.params;
-    const { userId } = req.user;
-
-    // Validate uploaded file
-    if (!req.file) {
-      return res
-        .status(400)
-        .json({ status: false, message: "No file uploaded." });
-    }
-
-    // Find task
-    const task = await Task.findById(taskId);
-    if (!task) {
-      return res
-        .status(404)
-        .json({ status: false, message: "Task not found." });
-    }
-
-    // Upload file to S3
-    const fileUrl = await uploadToS3(req.file);
-
-    // Create attachment entry in DB
-    const attachment = await Attachment.create({
-      task: taskId,
-      url: fileUrl, // Use S3 URL
-      fileType: req.file.mimetype,
-      uploadedBy: userId,
-    });
-
-    // Link attachment to task
-    task.assets.push(attachment._id);
-    await task.save();
-    console.log("Received file:", req.file);
-
-    // Send success response
-    res.status(201).json({
-      status: true,
-      attachment,
-      message: "Attachment uploaded successfully.",
-    });
-  } catch (error) {
-    console.error("Error in addAttachment:", error);
-    res.status(500).json({ status: false, message: "Internal Server Error" });
-  }
-};
-
-export const removeAttachment = async (req, res) => {
-  try {
-    const { attachmentId } = req.params;
-
-    const attachment = await Attachment.findById(attachmentId);
-    if (!attachment) {
-      return res
-        .status(404)
-        .json({ status: false, message: "Attachment not found" });
-    }
-
-    const fileKey = attachment.url.split(".com/")[1];
-    await s3
-      .deleteObject({ Bucket: process.env.AWS_S3_BUCKET_NAME, Key: fileKey })
-      .promise();
-
-    await Task.findByIdAndUpdate(attachment.task, {
-      $pull: { assets: attachmentId },
-    });
-    await Attachment.findByIdAndDelete(attachmentId);
-
-    res
-      .status(200)
-      .json({ status: true, message: "Attachment removed successfully" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ status: false, message: "Internal Server Error" });
-  }
-};
-export const getAttachments = async (req, res) => {
-  try {
-    const { taskId } = req.params;
-
-    const attachments = await Attachment.find({ task: taskId }).populate(
-      "uploadedBy",
-      "name email"
-    );
-
-    res.status(200).json({ status: true, attachments });
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: false, message: "Internal Server Error" });

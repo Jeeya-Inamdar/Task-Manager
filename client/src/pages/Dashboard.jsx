@@ -422,8 +422,6 @@ const Dashboard = () => {
 
   const { data, isLoading } = useGetDashboardStatsQuery();
 
-  console.log(data);
-
   if (isLoading)
     return (
       <div className="py-10">
