@@ -4,6 +4,7 @@ import { MdGridView } from "react-icons/md";
 import { useParams, useNavigate } from "react-router-dom";
 import { IoMdAdd } from "react-icons/io";
 import {
+
   Check,
   Edit,
   MoreHorizontal,
@@ -18,6 +19,9 @@ import {
   useGetAllTasksQuery,
   useUpdateTaskMutation,
   useDeleteOrRestoreTaskMutation,
+  useGetAllTasksQuery,
+  useUpdateTaskMutation,
+
 } from "../redux/slices/api/taskApiSlice";
 import Loading from "../components/Loader";
 import Title from "../components/Title";
@@ -33,11 +37,31 @@ const TABS = [
   { title: "List View", icon: <FaList /> },
 ];
 
+
+// Color mapping for columns
+const titleColorMap = {
+  todo: "bg-blue-500 text-white",
+  "in-progress": "bg-orange-500 text-white",
+  completed: "bg-green-500 text-white",
+};
+
+// Display names for task stages
+const stageDisplayNames = {
+  todo: "TODO",
+  "in progress": "IN PROGRESS",
+  completed: "COMPLETE",
+};
+
+
 // Format tasks for display
 const formatTasksForDisplay = (tasks) => {
   return tasks.map((task) => ({
     id: task.id,
+
     _id: task._id,
+
+    _id: task._id, // Include _id for API calls
+
     title: task.title,
     stage: task.stage,
     isSelected: false,
@@ -282,12 +306,18 @@ const Tasks = () => {
   const params = useParams();
   const navigate = useNavigate();
 
+
+
+  const stage = params?.stage || "";
+
+
   // State
   const [selected, setSelected] = useState(0);
   const [open, setOpen] = useState(false);
   const [subTaskOpen, setSubTaskOpen] = useState(false);
   const [addTaskStatus, setAddTaskStatus] = useState("");
   const [draggingTask, setDraggingTask] = useState(null);
+
   const [editingTask, setEditingTask] = useState(null);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -299,6 +329,10 @@ const Tasks = () => {
     { id: "completed", name: "COMPLETE", color: "green" },
   ]);
   const [showAddStageForm, setShowAddStageForm] = useState(false);
+
+  const [dropTargetStage, setDropTargetStage] = useState(null);
+  const [showDependencies, setShowDependencies] = useState(true);
+
 
   // API hooks
   const { data, isLoading, refetch } = useGetAllTasksQuery({
@@ -314,6 +348,7 @@ const Tasks = () => {
     () => formatTasksForDisplay(data?.tasks || []),
     [data]
   );
+
 
   // Group tasks by stage
   const tasksByStage = useMemo(() => {
@@ -346,6 +381,23 @@ const Tasks = () => {
     console.log(`Event: ${name}`, { data, eventType: e.type });
   };
 
+
+
+  // Filtered tasks
+  const todoTasks = useMemo(
+    () => allTasks.filter((task) => task.stage === "todo"),
+    [allTasks]
+  );
+  const inProgressTasks = useMemo(
+    () => allTasks.filter((task) => task.stage === "in progress"),
+    [allTasks]
+  );
+  const completedTasks = useMemo(
+    () => allTasks.filter((task) => task.stage === "completed"),
+    [allTasks]
+  );
+
+
   // Drag and drop handlers
   const onDragStart = (e, task) => {
     logEvent("onDragStart", e, task);
@@ -355,12 +407,20 @@ const Tasks = () => {
     setIsDragging(true);
     setDraggingTask(task);
 
+
     setTimeout(() => {
       const element = document.querySelector(`[data-task-id="${task._id}"]`);
       if (element) {
         element.classList.add("opacity-50");
       }
     }, 0);
+
+    if (e.target) {
+      setTimeout(() => {
+        e.target.classList.add("scale-105", "shadow-lg", "opacity-50");
+      }, 0);
+    }
+
   };
 
   const onDragEnd = (e) => {
@@ -368,17 +428,30 @@ const Tasks = () => {
     setIsDragging(false);
     setDraggingTask(null);
 
+
     document.querySelectorAll(".task-card").forEach((card) => {
       card.classList.remove("opacity-50");
     });
 
     document.querySelectorAll(".drop-zone").forEach((zone) => {
       zone.classList.remove("bg-blue-100", "border-blue-500");
+
+    setDropTargetStage(null);
+
+    if (e.target) {
+      e.target.classList.remove("scale-105", "shadow-lg", "opacity-50");
+    }
+
+    // Remove highlighting
+    document.querySelectorAll(".bg-blue-50").forEach((el) => {
+      el.classList.remove("bg-blue-50", "border-blue-500");
+
     });
   };
 
   const onDragOver = (e, stage) => {
     e.preventDefault();
+
     // logEvent("onDragOver", e, stage);
 
     if (isDragging) {
@@ -445,6 +518,45 @@ const Tasks = () => {
       document.querySelectorAll(".drop-zone").forEach((zone) => {
         zone.classList.remove("bg-blue-100", "border-blue-500");
       });
+
+    setDropTargetStage(stage);
+
+    // Highlight drop target
+    document.querySelectorAll("[data-stage]").forEach((el) => {
+      if (el.dataset.stage === stage) {
+        el.classList.add("bg-blue-50", "border-blue-500");
+      } else {
+        el.classList.remove("bg-blue-50", "border-blue-500");
+      }
+    });
+  };
+
+  const onDrop = async (e, newStage) => {
+    e.preventDefault();
+
+    const taskId = e.dataTransfer.getData("taskId");
+    console.log("Dropped Task ID:", taskId);
+
+    const taskToUpdate = allTasks.find((task) => task.id === taskId);
+    if (!taskToUpdate) {
+      console.error("Task not found!");
+      return;
+    }
+
+    // Only update if stage changed
+    if (taskToUpdate.stage !== newStage) {
+      try {
+        const result = await updateTask({
+          id: taskToUpdate._id,
+          data: { stage: newStage },
+        }).unwrap();
+
+        console.log(`Task ${taskId} moved to ${newStage}`);
+        refetch();
+      } catch (err) {
+        console.error("Failed to update task:", err);
+      }
+
     }
   };
 
@@ -452,6 +564,7 @@ const Tasks = () => {
     setAddTaskStatus(status);
     setOpen(true);
   };
+
 
   const handleEditTask = (task) => {
     setEditingTask(task);
@@ -552,6 +665,13 @@ const Tasks = () => {
 
     return () => {
       document.removeEventListener("dragend", handleGlobalDragEnd);
+
+  // Event listener cleanup
+  useEffect(() => {
+    document.addEventListener("dragend", onDragEnd);
+    return () => {
+      document.removeEventListener("dragend", onDragEnd);
+
     };
   }, []);
 
@@ -597,6 +717,7 @@ const Tasks = () => {
       {/* Tabs */}
       <Tabs tabs={TABS} setSelected={setSelected}>
         {selected === 0 ? (
+
           <div>
             {/* Board view with stages */}
             <div className="mb-4 flex justify-between items-center">
@@ -645,6 +766,95 @@ const Tasks = () => {
                           >
                             <Trash2 size={16} />
                           </button>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* TODO Column */}
+            <div className="flex-1 flex flex-col">
+              <div
+                className={`${titleColorMap["todo"]} rounded-t-lg px-4 py-2 flex justify-between items-center`}
+              >
+                <h2 className="text-lg font-bold">
+                  {stageDisplayNames["todo"]}
+                </h2>
+                <span className="bg-white text-blue-500 rounded-full px-2 py-0.5 text-sm font-bold">
+                  {todoTasks.length}
+                </span>
+              </div>
+              <div
+                data-stage="todo"
+                className="flex-1 min-h-64 border-2 border-gray-200 rounded-b-lg p-3 bg-gray-50 transition-all duration-200"
+                onDrop={(e) => onDrop(e, "todo")}
+                onDragOver={(e) => onDragOver(e, "todo")}
+              >
+                {todoTasks.length > 0 ? (
+                  <div className="space-y-3">
+                    {todoTasks.map((task) => (
+                      <div
+                        key={task.id}
+                        id={`task-${task.id}`}
+                        className="bg-white p-3 rounded-md border border-gray-200 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 cursor-grab"
+                        draggable
+                        onDragStart={(e) => onDragStart(e, task)}
+                      >
+                        <h3 className="font-medium truncate">{task.title}</h3>
+                        {task.items.length > 0 && (
+                          <div className="mt-2 text-sm text-gray-600 space-y-1">
+                            {task.items.map((item, i) => (
+                              <div key={i} className="truncate">
+                                {item}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-gray-400 italic">Drop tasks here</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* IN PROGRESS Column */}
+            <div className="flex-1 flex flex-col">
+              <div
+                className={`${titleColorMap["in-progress"]} rounded-t-lg px-4 py-2 flex justify-between items-center`}
+              >
+                <h2 className="text-lg font-bold">
+                  {stageDisplayNames["in progress"]}
+                </h2>
+                <span className="bg-white text-orange-500 rounded-full px-2 py-0.5 text-sm font-bold">
+                  {inProgressTasks.length}
+                </span>
+              </div>
+              <div
+                data-stage="in progress"
+                className="flex-1 min-h-64 border-2 border-gray-200 rounded-b-lg p-3 bg-gray-50 transition-all duration-200"
+                onDrop={(e) => onDrop(e, "in progress")}
+                onDragOver={(e) => onDragOver(e, "in progress")}
+              >
+                {inProgressTasks.length > 0 ? (
+                  <div className="space-y-3">
+                    {inProgressTasks.map((task) => (
+                      <div
+                        key={task.id}
+                        id={`task-${task.id}`}
+                        className="bg-white p-3 rounded-md border border-gray-200 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 cursor-grab"
+                        draggable
+                        onDragStart={(e) => onDragStart(e, task)}
+                      >
+                        <h3 className="font-medium truncate">{task.title}</h3>
+                        {task.items.length > 0 && (
+                          <div className="mt-2 text-sm text-gray-600 space-y-1">
+                            {task.items.map((item, i) => (
+                              <div key={i} className="truncate">
+                                {item}
+                              </div>
+                            ))}
+                          </div>
+
                         )}
                       </div>
                     </div>
@@ -680,8 +890,62 @@ const Tasks = () => {
                       )}
                     </div>
                   </div>
+
                 );
               })}
+
+                )}
+              </div>
+            </div>
+
+            {/* COMPLETED Column */}
+            <div className="flex-1 flex flex-col">
+              <div
+                className={`${titleColorMap["completed"]} rounded-t-lg px-4 py-2 flex justify-between items-center`}
+              >
+                <h2 className="text-lg font-bold">
+                  {stageDisplayNames["completed"]}
+                </h2>
+                <span className="bg-white text-green-500 rounded-full px-2 py-0.5 text-sm font-bold">
+                  {completedTasks.length}
+                </span>
+              </div>
+              <div
+                data-stage="completed"
+                className="flex-1 min-h-64 border-2 border-gray-200 rounded-b-lg p-3 bg-gray-50 transition-all duration-200"
+                onDrop={(e) => onDrop(e, "completed")}
+                onDragOver={(e) => onDragOver(e, "completed")}
+              >
+                {completedTasks.length > 0 ? (
+                  <div className="space-y-3">
+                    {completedTasks.map((task) => (
+                      <div
+                        key={task.id}
+                        id={`task-${task.id}`}
+                        className="bg-white p-3 rounded-md border border-gray-200 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 cursor-grab"
+                        draggable
+                        onDragStart={(e) => onDragStart(e, task)}
+                      >
+                        <h3 className="font-medium truncate">{task.title}</h3>
+                        {task.items.length > 0 && (
+                          <div className="mt-2 text-sm text-gray-600 space-y-1">
+                            {task.items.map((item, i) => (
+                              <div key={i} className="truncate">
+                                {item}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-gray-400 italic">Drop tasks here</p>
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
         ) : (
@@ -689,11 +953,16 @@ const Tasks = () => {
         )}
       </Tabs>
 
+
       {/* Add/Edit Task modal */}
+
+      {/* Add Task modal */}
+
       <AddTask
         open={open}
         setOpen={setOpen}
         initialStatus={addTaskStatus}
+
         task={editingTask}
         // Pass available stages to the task form
         availableStages={stages.map((s) => ({
@@ -703,9 +972,14 @@ const Tasks = () => {
         onSuccess={() => {
           setOpen(false);
           setEditingTask(null);
+
+        onSuccess={() => {
+          setOpen(false);
+
           refetch();
         }}
       />
+
 
       {/* AddSubTask modal */}
       <AddSubTask
@@ -718,6 +992,10 @@ const Tasks = () => {
           refetch();
         }}
       />
+
+      {/* Dependencies visualization (placeholder) */}
+      {showDependencies && <div className="relative"></div>}
+
     </div>
   );
 };
